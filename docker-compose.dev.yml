@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ensuria-payflow-api-dev
+    command: npm run start:dev
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${API_PORT}
+      MONGO_URI: ${MONGO_URI}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+    depends_on:
+      - mysql
+      - mongo
+      - redis
+      - rabbitmq
+      - prometheus
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8.4
+    container_name: ${MYSQL_HOST}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:7
+    container_name: ${MONGO_HOST}
+    ports:
+      - "${MONGO_PORT}:27017"
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: ${REDIS_HOST}
+    command: >
+      redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY} --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ${RABBITMQ_HOST}
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "15672:15672"
+    networks:
+      - backend
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    container_name: redis-commander-dev
+    environment:
+      REDIS_HOSTS: "local:${REDIS_HOST}:${REDIS_PORT}"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus-dev
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana-dev
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS}
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  mongo-data:
