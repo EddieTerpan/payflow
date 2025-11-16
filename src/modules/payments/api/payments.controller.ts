@@ -1,23 +1,25 @@
 import {
   Body,
   Controller,
-  Post,
-  Patch,
   Delete,
   Get,
   Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiOkResponse,
   ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from '@nestjs/swagger';
 
 import { PaymentsService } from '../application/payments.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { UpdatePaymentDto } from '../dto/update-payment.dto';
 import { PaymentResponseDto } from '../dto/payment-response.dto';
+import { UpdateStatusDto } from '../dto/update-status.dto';
+import { PaymentStatus } from '../enums/payment-status.enum';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -55,6 +57,34 @@ export class PaymentsController {
   @ApiOkResponse({ type: PaymentResponseDto })
   updateOne(@Param('id') id: string, @Body() dto: UpdatePaymentDto) {
     return this.payments.update(id, dto);
+  }
+
+  // ---------------------------------------------------------
+  // UPDATE multiple payments => PROCESSED
+  // ---------------------------------------------------------
+  @ApiOperation({
+    summary: 'Set multiple payments processed',
+    description:
+      'Force update status to "PROCESSED" for a list of payment IDs.',
+  })
+  @ApiOkResponse({ type: [PaymentResponseDto] })
+  @Patch('processed/bulk')
+  setProcessedMany(@Body() dto: UpdateStatusDto) {
+    return this.payments.setStatus(dto.ids, PaymentStatus.PROCESSED);
+  }
+
+  // ---------------------------------------------------------
+  // UPDATE multiple payments => completed
+  // ---------------------------------------------------------
+  @ApiOperation({
+    summary: 'Set multiple payments completed',
+    description:
+      'Force update status to "COMPLETED" for a list of payment IDs.',
+  })
+  @ApiOkResponse({ type: [PaymentResponseDto] })
+  @Patch('completed/bulk')
+  setCompletedMany(@Body() dto: UpdateStatusDto) {
+    return this.payments.setStatus(dto.ids, PaymentStatus.COMPLETED);
   }
 
   // ---------------------------------------------------------

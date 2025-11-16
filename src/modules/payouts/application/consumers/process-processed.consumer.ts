@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { RabbitMQService } from '../../../../infrastructure/rabbitmq/rabbitmq.service';
-import { PayoutsService } from '../application/payouts.service';
-import getLogger from '../../../common/helpers/getLogger';
+import { RabbitMQService } from '../../../../../infrastructure/rabbitmq/rabbitmq.service';
+import { PayoutsService } from '../payouts.service';
+import getLogger from '../../../../common/helpers/getLogger';
 
 @Injectable()
 export class ProcessProcessedConsumer implements OnModuleInit {

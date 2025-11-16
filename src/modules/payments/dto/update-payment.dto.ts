@@ -1,7 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentStatus } from '../enums/payment-status.enum';
+import { IsObjectId } from '../../../common/validators/is-object.validator';
 
 export class UpdatePaymentDto {
+  @IsObjectId()
   @ApiPropertyOptional({ example: '691779e3449b4aeaffcea5f7' })
   merchantId?: string;
 

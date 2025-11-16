@@ -45,6 +45,42 @@ Payment was paid from PROCESSED (D still frozen).
 ### `5. PAID`
 Final confirmation after D unlock.
 
+      ┌────────────────────┐
+      │      ACCEPTED       │
+      └──────────┬──────────┘
+                 │
+                 │ processAccepted()
+                 ▼
+      ┌────────────────────┐
+      │      PROCESSED     │
+      │ available = A-B-C-D │
+      │ holdD > 0           │
+      └───────┬───────┬────┘
+              │       │
+              │       │ daily payout (если хватает средств)
+              │       ▼
+              │   ┌──────────────────────┐
+              │   │    PAID_PENDING      │
+              │   │  (выплачено A-B-C)   │
+              │   │  holdD остаётся      │
+              │   └───────────┬──────────┘
+              │               │
+              │               │ processProcessed()
+              ▼               │
+      ┌────────────────────┐  │
+      │     COMPLETED      │  │
+      │ available=A-B-C    │  │
+      │ holdD = 0          │  │
+      └──────────┬─────────┘  │
+                 │            │
+                 │ daily payout│
+                 ▼            ▼
+      ┌──────────────────┐  ┌──────────────────┐
+      │       PAID       │  │       PAID       │
+      │ (полностью        │  │ (holdD обнулён) │
+      │   выплачено)      │  │                 │
+      └──────────────────┘  └──────────────────┘
+
 ---
 
 # 🧱 Extended Tech Stack

@@ -4,12 +4,12 @@ import { MerchantsModule } from '../merchants/merchants.module'
 import { RabbitMqModule } from '../../../infrastructure/rabbitmq/rabbitmq.module';
 
 import { PayoutsService } from './application/payouts.service';
-import { PayoutsConsumer } from './infrastructure/payouts.consumer';
-import { PayoutCronService } from './application/payout-cron.service';
+import { PayoutsConsumer } from './application/consumers/payouts.consumer';
+import { PayoutCronService } from './cron/payout-cron.service';
 import { PayoutsController } from './api/payouts.controller';
 import { SystemConfigModule } from '../system-config/system-config.module';
-import { ProcessAcceptedConsumer } from './infrastructure/process-accepted.consumer';
-import { ProcessProcessedConsumer } from './infrastructure/process-processed.consumer';
+import { ProcessAcceptedConsumer } from './application/consumers/process-accepted.consumer';
+import { ProcessProcessedConsumer } from './application/consumers/process-processed.consumer';
 
 @Module({
   imports: [

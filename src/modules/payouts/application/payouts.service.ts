@@ -63,6 +63,15 @@ export class PayoutsService {
         available,
         status: PaymentStatus.PROCESSED,
       });
+
+      return {
+        id: p.id,
+        feeA,
+        feeB,
+        feeC,
+        holdD,
+        available,
+      }
     }
   }
 
@@ -105,7 +114,10 @@ export class PayoutsService {
     );
 
     for (const p of pending) {
-      await this.payments.setStatus([p.id], PaymentStatus.PAID);
+      await this.payments.update(p.id, {
+        holdD: 0,
+        status: PaymentStatus.PAID,
+      });
     }
   }
 

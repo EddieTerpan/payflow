@@ -17,25 +17,31 @@ export class RabbitMQService implements OnModuleInit {
     });
   }
 
-  async onModuleInit() {
-    const url =
-      `amqp://${process.env.RABBITMQ_USER || 'admin'}:` +
-      `${process.env.RABBITMQ_PASS || 'admin'}@` +
-      `${process.env.RABBITMQ_HOST || 'rabbitmq'}:` +
-      `${process.env.RABBITMQ_PORT || 5672}`;
+async onModuleInit() {
+  const url =
+    `amqp://${process.env.RABBITMQ_USER || 'admin'}:` +
+    `${process.env.RABBITMQ_PASS || 'admin'}@` +
+    `${process.env.RABBITMQ_HOST || 'rabbitmq'}:` +
+    `${process.env.RABBITMQ_PORT || 5672}`;
 
-    const logger = getLogger();
+  const logger = getLogger();
 
-    logger.log('🐰 Connecting to RabbitMQ:', url);
+  logger.log('🐰 Connecting to RabbitMQ:', url);
 
-    this.connection = await amqp.connect(url);
-    this.channel = await this.connection.createChannel();
-
-    logger.log('🐰 RabbitMQ channel successfully created');
-
-    // Далі кажемо, що сервіс готовий
-    this.resolveReady();
+  while (true) {
+    try {
+      this.connection = await amqp.connect(url);
+      this.channel = await this.connection.createChannel();
+      logger.log('🐰 RabbitMQ channel successfully created');
+      this.resolveReady();
+      break;
+    } catch (e) {
+      logger.error('❌ RabbitMQ not ready:', e.message);
+      logger.log('⏳ Retry in 3 seconds...');
+      await new Promise((res) => setTimeout(res, 3000)); // retry
+    }
   }
+}
 
   /** Чекаємо, поки канал створиться */
   async waitReady(): Promise<void> {

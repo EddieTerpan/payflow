@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PaymentStatus } from '../enums/payment-status.enum';
+import { IsObjectId } from '../../../common/validators/is-object.validator';
 
 export class PaymentResponseDto {
   @ApiProperty()
   id: number;
 
   @ApiProperty()
-  merchantId: number;
+  @IsObjectId()
+  merchantId: string;
 
   @ApiProperty()
   amount: number;
