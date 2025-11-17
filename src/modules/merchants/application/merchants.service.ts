@@ -39,8 +39,7 @@ export class MerchantsService {
     if (!ids.length) return [];
 
     const merchants = await this.merchantModel
-      .find({ _id: { $in: ids } })
-      .lean();
+      .find({ _id: { $in: ids } });
 
     return merchants as MerchantLean[];
   }

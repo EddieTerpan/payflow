@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaymentStatus } from '../enums/payment-status.enum';
 import { PaymentOrmEntity } from '../domain/payment.orm-entity';
-import { In } from 'typeorm';
+import { In, MoreThan } from 'typeorm';
 
 @Injectable()
 export class PaymentsService {
@@ -62,6 +62,17 @@ export class PaymentsService {
       },
       order: { createdAt: 'ASC' }, // FIFO
     });
+  }
+
+  async getMerchantLoan(merchantId: string): Promise<number> {
+    const result = await this.repo
+      .createQueryBuilder('m')
+      .select('SUM(m.loan)', 'totalLoan')
+      .where('m.merchantId = :merchantId', { merchantId })
+      .andWhere('m.loan > 0')
+      .getRawOne();
+
+    return Number(result?.totalLoan ?? 0);
   }
 
   async getPayablePaymentsMerchantIds(): Promise<string[]> {

@@ -36,6 +36,7 @@ export class CreatePaymentsTable1710000000000 implements MigrationInterface {
 
           { name: 'holdD', type: 'decimal', precision: 12, scale: 2, default: 0 },
           { name: 'available', type: 'decimal', precision: 12, scale: 2, default: 0 },
+          { name: 'loan', type: 'decimal', precision: 12, scale: 2, default: 0 },
 
           { name: 'createdAt', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
           {

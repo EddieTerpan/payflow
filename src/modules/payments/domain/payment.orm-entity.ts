@@ -38,6 +38,9 @@ export class PaymentOrmEntity {
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   holdD!: number;
 
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  loan!: number;
+
   // Доступна для виплати сума на даний момент
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   available!: number;

@@ -51,8 +51,7 @@ export class PayoutsService {
       const holdD = p.amount * (Number(D_percent) / 100);
 
       // Доступна сума без D
-      const available =
-        Number(p.amount) - feeA - feeB - feeC - holdD;
+      const available = Number(p.amount) - feeA - feeB - feeC - holdD;
 
       // Переводимо платіж у статус PROCESSED
       await this.payments.update(p.id, {
@@ -63,15 +62,6 @@ export class PayoutsService {
         available,
         status: PaymentStatus.PROCESSED,
       });
-
-      return {
-        id: p.id,
-        feeA,
-        feeB,
-        feeC,
-        holdD,
-        available,
-      }
     }
   }
 
@@ -116,6 +106,7 @@ export class PayoutsService {
     for (const p of pending) {
       await this.payments.update(p.id, {
         holdD: 0,
+        loan: p.loan - p.holdD,
         status: PaymentStatus.PAID,
       });
     }
@@ -165,23 +156,25 @@ export class PayoutsService {
     for (const payablePayment of payablePayments) {
       totalAvailableNow += Number(payablePayment.available);
     }
+    totalAvailableNow -= await this.payments.getMerchantLoan(merchantId);
 
     // 3) Відбір платежів, які можна виплатити в межах балансу
-    const picked: { id: string; payoutAmount: number }[] = [];
+    const picked: { id: string; payoutAmount: number; holdD: number }[] = [];
     let current = 0;
 
     for (const sortedPayablePayment of sortedPayablePayments) {
       // payoutAmount = amount – (A+B+C), згідно з ТЗ ("але НЕ D")
       const payoutAmount =
-        Number(sortedPayablePayment.amount)
-        - Number(sortedPayablePayment.feeA)
-        - Number(sortedPayablePayment.feeB)
-        - Number(sortedPayablePayment.feeC);
+        Number(sortedPayablePayment.amount) -
+        Number(sortedPayablePayment.feeA) -
+        Number(sortedPayablePayment.feeB) -
+        Number(sortedPayablePayment.feeC);
 
       if (current + payoutAmount <= totalAvailableNow) {
         picked.push({
           id: sortedPayablePayment.id,
-          payoutAmount
+          payoutAmount,
+          holdD: sortedPayablePayment.holdD,
         });
 
         current += payoutAmount;
@@ -189,28 +182,23 @@ export class PayoutsService {
     }
 
     // 4) Розділяємо вибрані платежі по статусам
-    const statusMap = new Map(payablePayments.map(p => [p.id, p.status]));
-
-    const completedIds: string[] = [];
-    const processedIds: string[] = [];
+    const statusMap = new Map(payablePayments.map((p) => [p.id, p.status]));
 
     for (const item of picked) {
       const status = statusMap.get(item.id);
 
       if (status === PaymentStatus.COMPLETED) {
-        completedIds.push(item.id); // COMPLETED → PAID
+        await this.payments.update(item.id, {
+          available: 0,
+          status: PaymentStatus.PAID,
+        }); // COMPLETED → PAID
       } else if (status === PaymentStatus.PROCESSED) {
-        processedIds.push(item.id); // PROCESSED → PAID_PENDING
+        await this.payments.update(item.id, {
+          available: 0,
+          loan: item.holdD,
+          status: PaymentStatus.PAID_PENDING,
+        }); // PROCESSED → PAID_PENDING
       }
-    }
-
-    // 5) Застосовуємо статуси
-    if (completedIds.length > 0) {
-      await this.payments.setPaid(completedIds);
-    }
-
-    if (processedIds.length > 0) {
-      await this.payments.setPending(processedIds);
     }
 
     // Готовий денний звіт

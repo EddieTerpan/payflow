@@ -20,9 +20,7 @@ export class ProcessAcceptedConsumer implements OnModuleInit {
       const { merchantId } = msg;
       logger.log(`🎧 Consuming processAccepted task → merchant ${merchantId}`);
 
-      const result = this.payouts.processAccepted(merchantId);
-      logger.log(result);
-
+      this.payouts.processAccepted(merchantId);
 
       logger.log(`✅ Done processAccepted for merchant ${merchantId}`)
     });
