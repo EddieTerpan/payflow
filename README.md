@@ -57,12 +57,14 @@ Final confirmation after D unlock.
       │ holdD > 0           │
       └───────┬───────┬────┘
               │       │
-              │       │ daily payout (если хватает средств)
+              │       │ daily payout (if funds are sufficient)
               │       ▼
               │   ┌──────────────────────┐
               │   │    PAID_PENDING      │
-              │   │  (выплачено A-B-C)   │
-              │   │  holdD остаётся      │
+              │   │(paid A-B-C)          │
+              │   │holdD stays           │
+              │   │add loan              |
+              │   │(freeze part of total)│
               │   └───────────┬──────────┘
               │               │
               │               │ processProcessed()
@@ -77,8 +79,8 @@ Final confirmation after D unlock.
                  ▼            ▼
       ┌──────────────────┐  ┌──────────────────┐
       │       PAID       │  │       PAID       │
-      │ (полностью        │  │ (holdD обнулён) │
-      │   выплачено)      │  │                 │
+      │ (total paid)     │  │ loan = loan-holdD│
+      │                  │  │  (holdD set 0)   │
       └──────────────────┘  └──────────────────┘
 
 ---

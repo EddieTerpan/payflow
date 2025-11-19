@@ -14,7 +14,7 @@ export class PayoutCronService {
     private readonly merchants: MerchantsService,
   ) {}
 
-  @Cron('0 0 * * *') // раз на добу
+  @Cron('* * * * *') // раз на добу
   async runDaily() {
     const payableMerchantIds =
       await this.payments.getPayablePaymentsMerchantIds();
